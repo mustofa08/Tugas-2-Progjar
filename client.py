@@ -4,43 +4,40 @@ import threading
 
 logging.basicConfig(level=logging.INFO)
 
-
-def kirim_data(nama="kosong"):
-    # membuat koneksi dengan server
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('localhost', 45000)
-    sock.connect(server_address)
-    logging.info(f"client {nama} connect to socket {server_address}")
+def kirim_pesan(client_id="default"):
+    # Membuat koneksi ke server
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_addr = ('localhost', 45000)
+    s.connect(server_addr)
+    logging.info(f"Klien {client_id} terhubung ke soket {server_addr}")
 
     try:
-        # Send data
-        message = 'TIME\r\n\r\n'
-        logging.warning(f"[CLIENT {nama}] sending {message.encode()}")
-        sock.sendall(message.encode()) # Mengirim pesan 'TIME' ke server
-        data_received = ''
+        # Mengirim pesan
+        pesan = 'TIME\r\n\r\n'
+        logging.warning(f"[KLIEN {client_id}] mengirim {pesan.encode()}")
+        s.sendall(pesan.encode()) # Mengirim pesan 'TIME' ke server
+        data_terkumpul = ''
         while True:
-            data = sock.recv(16) # Menerima data sebesar 16 byte
-            data_received += data.decode()
-            if "\r\n\r\n" in data_received:
+            data = s.recv(16) # Menerima data sebesar 16 byte
+            data_terkumpul += data.decode()
+            if "\r\n\r\n" in data_terkumpul:
                 break
             else:
-                # Data kosong
-                break # keluar dari loop
+                break # keluar dari loop jika data kosong
             
-            # menghapus \r\n\r\n
-        data_received = data_received.strip()
-        logging.info(f"JAM {data_received}")
+        # Menghapus \r\n\r\n
+        data_terkumpul = data_terkumpul.strip()
+        logging.info(f"WAKTU {data_terkumpul}")
     finally:
-        logging.warning("closing")
-        sock.close()
+        logging.warning("menutup koneksi")
+        s.close()
     return
 
-
 if __name__=='__main__':
-    threads = []
+    daftar_thread = []
     for i in range(5):
-        t = threading.Thread(target=kirim_data, args=(i,))
-        threads.append(t) # Menambahkan thread ke dalam daftar threads
+        t = threading.Thread(target=kirim_pesan, args=(i,))
+        daftar_thread.append(t) # Menambahkan thread ke dalam daftar
 
-    for thr in threads:
-        thr.start() # Memulai setiap thread
+    for t in daftar_thread:
+        t.start() # Memulai setiap thread
